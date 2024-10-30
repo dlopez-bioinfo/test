@@ -3,7 +3,7 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      - main  # Puedes cambiar a la rama donde quieres que se ejecute
+      - main  # Cambia a la rama deseada
     paths:
       - '**/Dockerfile'
 
@@ -28,15 +28,21 @@ jobs:
         id: find_dockerfiles
         run: |
           # Encuentra Dockerfiles modificados en el último commit comparado al anterior
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep 'Dockerfile')
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep 'Dockerfile' || true)
           echo "Changed Dockerfiles: $CHANGED_FILES"
-          # Convertir a un array que pueda ser leído por GitHub Actions
-          echo "dockerfiles=$CHANGED_FILES" >> $GITHUB_ENV
+          # Si hay Dockerfiles, configurar salida; si no, establecer como vacío
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "::set-output name=dockerfiles::$CHANGED_FILES"
+          else
+            echo "::set-output name=dockerfiles::"
+          fi
 
       - name: Build and push Docker images
-        if: env.dockerfiles != ""
+        if: steps.find_dockerfiles.outputs.dockerfiles
         run: |
-          for dockerfile in ${{ env.dockerfiles }}
+          # Leer Dockerfiles cambiados
+          dockerfiles="${{ steps.find_dockerfiles.outputs.dockerfiles }}"
+          for dockerfile in $dockerfiles
           do
             # Extraer el directorio donde está el Dockerfile
             dir=$(dirname "$dockerfile")
