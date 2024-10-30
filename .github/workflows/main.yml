@@ -7,9 +7,8 @@ name: Docker
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: 
+      - main
   paths:
     - '**/Dockerfile'
     - '**/main.yml'  
