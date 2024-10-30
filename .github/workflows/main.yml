@@ -6,7 +6,7 @@ on:
       - main  # Cambia a la rama deseada
     paths:
       - '**/Dockerfile'
-      - 'main.yml'  
+      - '**/main.yml'  
 
 jobs:
   build:
