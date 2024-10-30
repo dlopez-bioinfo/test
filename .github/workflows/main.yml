@@ -40,11 +40,11 @@ jobs:
             # Usa docker/build-push-action para construir y empujar la imagen a Docker Hub
             echo "Building Docker image $image_name from directory $dir"
             echo "docker build directory is: $dir"
-  
-            # Configura las entradas para docker/build-push-action
-            docker/build-push-action@v5:
-            with:
-              context: ${{ dir }}
-              push: true
-              tags: ${{ image_name }}
-              - name: Version file
+        
+            # Construye la imagen Docker
+            docker build -t $image_name $dir
+            # Empuja la imagen a Docker Hub
+            docker push $image_name
+          
+            # Genera el archivo docker_version en el mismo directorio que el Dockerfile
+            echo "$image_name" > "$dir/docker_version" 
