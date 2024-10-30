@@ -30,18 +30,19 @@ jobs:
           # Encuentra Dockerfiles modificados en el último commit comparado al anterior
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep 'Dockerfile' || true)
           echo "Changed Dockerfiles: $CHANGED_FILES"
-          # Si hay Dockerfiles, configurar salida; si no, establecer como vacío
+          
+          # Crear archivo de entorno para almacenar la salida de dockerfiles
           if [ -n "$CHANGED_FILES" ]; then
-            echo "::set-output name=dockerfiles::$CHANGED_FILES"
+            echo "dockerfiles=$CHANGED_FILES" >> $GITHUB_ENV
           else
-            echo "::set-output name=dockerfiles::"
+            echo "dockerfiles=" >> $GITHUB_ENV
           fi
 
       - name: Build and push Docker images
-        if: steps.find_dockerfiles.outputs.dockerfiles
+        if: env.dockerfiles
         run: |
-          # Leer Dockerfiles cambiados
-          dockerfiles="${{ steps.find_dockerfiles.outputs.dockerfiles }}"
+          # Leer Dockerfiles cambiados desde el archivo de entorno
+          dockerfiles="${{ env.dockerfiles }}"
           for dockerfile in $dockerfiles
           do
             # Extraer el directorio donde está el Dockerfile
