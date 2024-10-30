@@ -1,50 +1,50 @@
-name: Docker Build and Push
+name: Build and Push Docker Images
 
-on: 
+on:
   push:
+    branches:
+      - main  # Puedes cambiar a la rama donde quieres que se ejecute
     paths:
-      - '**/Dockerfile'   # Ejecutar solo si se modifica algún archivo Dockerfile
+      - '**/Dockerfile'
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-  
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-  
+
       - name: Find changed Dockerfiles
         id: find_dockerfiles
         run: |
-          # Encuentra los Dockerfiles modificados
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'Dockerfile')
-          echo "changed_files=$changed_files" >> $GITHUB_ENV
-  
-      - name: Build, push Docker images, and create version files
-        if: env.changed_files != ""
+          # Encuentra Dockerfiles modificados en el último commit comparado al anterior
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep 'Dockerfile')
+          echo "Changed Dockerfiles: $CHANGED_FILES"
+          # Convertir a un array que pueda ser leído por GitHub Actions
+          echo "dockerfiles=$CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: Build and push Docker images
+        if: env.dockerfiles != ""
         run: |
-          for dockerfile in $changed_files; do
-          # Extrae el directorio de cada Dockerfile
-          dir=$(dirname $dockerfile)
-          # Usa el nombre del directorio para etiquetar la imagen
-          image_name="${{ secrets.DOCKER_USERNAME }}/$(basename $dir)-${{ github.sha }}"
-            
-          echo "Building and pushing $image_name..."
-            
-          # Usa docker/build-push-action para construir y empujar la imagen a Docker Hub
-          echo "Building Docker image $image_name from directory $dir"
-          echo "docker build directory is: $dir"
-        
-          # Construye la imagen Docker
-          docker build -t $image_name $dir
-          # Empuja la imagen a Docker Hub
-          docker push $image_name
-          
-          # Genera el archivo docker_version en el mismo directorio que el Dockerfile
-          echo "$image_name" > "$dir/docker_version" 
+          for dockerfile in ${{ env.dockerfiles }}
+          do
+            # Extraer el directorio donde está el Dockerfile
+            dir=$(dirname "$dockerfile")
+            # Usar el nombre del directorio como etiqueta (tag) en Docker Hub
+            image_name="${{ secrets.DOCKER_USERNAME }}/$(basename $dir)"
+            # Construir la imagen
+            docker build -t "$image_name:latest" "$dir"
+            # Subir la imagen
+            docker push "$image_name:latest"
+          done
+
