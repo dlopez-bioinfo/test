@@ -30,21 +30,21 @@ jobs:
         if: env.changed_files != ""
         run: |
           for dockerfile in $changed_files; do
-            # Extrae el directorio de cada Dockerfile
-            dir=$(dirname $dockerfile)
-            # Usa el nombre del directorio para etiquetar la imagen
-            image_name="${{ secrets.DOCKER_USERNAME }}/$(basename $dir)-${{ github.sha }}"
+          # Extrae el directorio de cada Dockerfile
+          dir=$(dirname $dockerfile)
+          # Usa el nombre del directorio para etiquetar la imagen
+          image_name="${{ secrets.DOCKER_USERNAME }}/$(basename $dir)-${{ github.sha }}"
             
-            echo "Building and pushing $image_name..."
+          echo "Building and pushing $image_name..."
             
-            # Usa docker/build-push-action para construir y empujar la imagen a Docker Hub
-            echo "Building Docker image $image_name from directory $dir"
-            echo "docker build directory is: $dir"
+          # Usa docker/build-push-action para construir y empujar la imagen a Docker Hub
+          echo "Building Docker image $image_name from directory $dir"
+          echo "docker build directory is: $dir"
         
-            # Construye la imagen Docker
-            docker build -t $image_name $dir
-            # Empuja la imagen a Docker Hub
-            docker push $image_name
+          # Construye la imagen Docker
+          docker build -t $image_name $dir
+          # Empuja la imagen a Docker Hub
+          docker push $image_name
           
-            # Genera el archivo docker_version en el mismo directorio que el Dockerfile
-            echo "$image_name" > "$dir/docker_version" 
+          # Genera el archivo docker_version en el mismo directorio que el Dockerfile
+          echo "$image_name" > "$dir/docker_version" 
