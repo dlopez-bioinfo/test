@@ -1,4 +1,5 @@
 FROM python:3.6
+
 LABEL version="1.0"
 # Set a working directory in the container
 WORKDIR /usr/src/app
