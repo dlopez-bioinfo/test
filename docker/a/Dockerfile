@@ -1,6 +1,6 @@
 FROM python:3.6
 
-LABEL version="1.0"
+LABEL version="v1.0"
 # Set a working directory in the container
 WORKDIR /usr/src/app
 # Install required packages
